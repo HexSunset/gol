@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     width = strtol(argv[2], NULL, 0);
     height = strtol(argv[3], NULL, 0);
 
-    board = board_create(width, height);
+    board = board_create(width, height, 0);
   } else if (strcmp(argv[1], "file") == 0) {
     if (argc != 3) {
       print_usage();
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     width = x;
     height = y;
 
-    board = board_create(width, height);
+    board = board_create(width, height, 0);
 
     for (uint64_t j = 0; j < y; j++) {
       for (uint64_t i = 0; i < x; i++) {
@@ -79,14 +79,12 @@ int main(int argc, char **argv) {
   const uint64_t square_width = round(window_width / width);
   const uint64_t square_height = round(window_height / height);
 
-  uint64_t generation = 0;
   char *title = malloc(255 * sizeof(char));
 
-  snprintf(title, 255, "Game of Life - generation %ul", generation);
+  snprintf(title, 255, "Game of Life - generation %lu", board->gen);
   InitWindow(window_width, window_height, title);
 
   Board *saved_board = NULL;
-  uint64_t saved_generation = 0;
 
   // everything in microseconds
   const uint64_t auto_update_max_interval = 2e6;
@@ -114,7 +112,7 @@ int main(int argc, char **argv) {
       }
 
       // set title to EDITED
-      snprintf(title, 255, "Game of Life - generation %ul [EDITED]", generation);
+      snprintf(title, 255, "Game of Life - generation %lu [EDITED]", board->gen);
       SetWindowTitle(title);
     }
 
@@ -143,8 +141,8 @@ int main(int argc, char **argv) {
       board_next_generation(old_board, new_board);
       board_destroy(old_board);
       board = new_board;
-      generation++;
-      snprintf(title, 255, "Game of Life - generation %ul", generation);
+      board->gen += 1;
+      snprintf(title, 255, "Game of Life - generation %lu", board->gen);
       SetWindowTitle(title);
     } else if (auto_update) {
       struct timeval curr_time;
@@ -156,8 +154,8 @@ int main(int argc, char **argv) {
 	board_next_generation(old_board, new_board);
 	board_destroy(old_board);
 	board = new_board;
-	generation++;
-	snprintf(title, 255, "Game of Life - generation %ul [AUTO]", generation);
+	board->gen += 1;
+	snprintf(title, 255, "Game of Life - generation %lu [AUTO]", board->gen);
 	SetWindowTitle(title);
       }
     }
@@ -165,8 +163,8 @@ int main(int argc, char **argv) {
     // check for board clear
     if (IsKeyPressed(KEY_C)) {
       memset(board->ptr, DEAD, board->width * board->height);
-      generation = 0;
-      snprintf(title, 255, "Game of Life - generation %ul [CLEARED]", generation);
+      board->gen = 0;
+      snprintf(title, 255, "Game of Life - generation %lu [CLEARED]", board->gen);
       SetWindowTitle(title);
     }
 
@@ -175,9 +173,8 @@ int main(int argc, char **argv) {
       if (saved_board != NULL) {
 	board_destroy(board);
 	board = board_copy(saved_board);
-	generation = saved_generation;
 
-	snprintf(title, 255, "Game of Life - generation %ul [LOADED]", generation);
+	snprintf(title, 255, "Game of Life - generation %lu [LOADED]", board->gen);
 	SetWindowTitle(title);
       }
     }
@@ -188,8 +185,7 @@ int main(int argc, char **argv) {
 	board_destroy(saved_board);
       }
       saved_board = board_copy(board);
-      saved_generation = generation;
-      snprintf(title, 255, "Game of Life - generation %ul [SAVED]", generation);
+      snprintf(title, 255, "Game of Life - generation %lu [SAVED]", board->gen);
       SetWindowTitle(title);
     }
 

@@ -9,6 +9,7 @@ typedef struct Board Board;
 struct Board {
   uint64_t width;
   uint64_t height;
+  uint64_t gen;
   uint8_t *ptr;
 };
 
@@ -17,7 +18,7 @@ typedef enum State {
   DEAD = 1,
 } State;
 
-Board *board_create(uint64_t width, uint64_t height) {
+Board *board_create(uint64_t width, uint64_t height, uint64_t gen) {
   uint8_t *ptr = malloc(width * height * sizeof(uint8_t));
   memset(ptr, DEAD, width * height);
 
@@ -25,12 +26,13 @@ Board *board_create(uint64_t width, uint64_t height) {
   b->width = width;
   b->height = height;
   b->ptr = ptr;
+  b->gen = gen;
 
   return b;
 }
 
 Board *board_copy(Board *b) {
-  Board *new_board = board_create(b->width, b->height);
+  Board *new_board = board_create(b->width, b->height, b->gen);
   memcpy(new_board->ptr, b->ptr, b->width * b->height);
   return new_board;
 }
