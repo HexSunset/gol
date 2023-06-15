@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <argp.h>
 
 #include <raylib.h>
 
@@ -10,6 +9,7 @@
 #define STBI_FAILURE_USERMSG
 
 #include "gol.h"
+
 
 void print_usage() {
   fputs("USAGE: gol [SUBCOMMAND] ...\n", stderr);
@@ -88,18 +88,17 @@ int main(int argc, char **argv) {
   while (!WindowShouldClose()) {
     // --- Update
 
+    // square mouse is in
+    uint64_t mouse_x = floor(GetMouseX() / square_width);
+    uint64_t mouse_y = floor(GetMouseY() / square_height);
+
     // check mouse click
-
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-      // square mouse is in
-      uint64_t x = floor(GetMouseX() / square_width);
-      uint64_t y = floor(GetMouseY() / square_height);
-
       // toggle square
-      if (board_get_square(board, x, y) == ALIVE) {
-	board_set_square(board, x, y, DEAD);
+      if (board_get_square(board, mouse_x, mouse_y) == ALIVE) {
+	board_set_square(board, mouse_x, mouse_y, DEAD);
       } else {
-	board_set_square(board, x, y, ALIVE);
+	board_set_square(board, mouse_x, mouse_y, ALIVE);
       }
 
       // set title to EDITED
@@ -154,7 +153,19 @@ int main(int argc, char **argv) {
     for (uint64_t y = 0; y < height; y++) {
       for (uint64_t x = 0; x < width; x++) {
 	if (board_get_square(board, x, y) == ALIVE) {
-	  DrawRectangle(x * square_width, y * square_height, square_width, square_height, RAYWHITE);
+	  if (mouse_x == x && mouse_y == y) {
+	    // mouse hovering
+	    DrawRectangle(x * square_width, y * square_height, square_width, square_height, LIGHTGRAY);
+	  } else {
+	    // mouse not hovering
+	    DrawRectangle(x * square_width, y * square_height, square_width, square_height, RAYWHITE);
+	  }
+	} else {
+	  // Square is dead.
+	  if (mouse_x == x && mouse_y == y) {
+	    // Mouse hovering  
+	    DrawRectangle(x * square_width, y * square_height, square_width, square_height, DARKGRAY);
+	  }
 	}
       }
     }
