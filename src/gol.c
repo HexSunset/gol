@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <raylib.h>
 
@@ -66,6 +67,8 @@ int main(int argc, char **argv) {
 	}
       }
     }
+
+    stbi_image_free(pixels);
   } else {
     print_usage();
     return 1;
@@ -84,6 +87,15 @@ int main(int argc, char **argv) {
 
   Board *saved_board = NULL;
   uint64_t saved_generation = 0;
+
+  // everything in microseconds
+  const uint64_t auto_update_max_interval = 2e6;
+  const uint64_t auto_update_min_interval = 0.25e6;
+  const uint64_t auto_update_interval_delta = 0.25e6;
+  uint64_t auto_update_interval = 0.5e6;
+  bool auto_update = false;
+  struct timeval auto_update_last;
+  gettimeofday(&auto_update_last, NULL);
 
   while (!WindowShouldClose()) {
     // --- Update
@@ -106,8 +118,26 @@ int main(int argc, char **argv) {
       SetWindowTitle(title);
     }
 
-    // check if we should calculate next gen
+    // check if auto_update should be toggled
     if (IsKeyPressed(KEY_SPACE)) {
+      auto_update = !auto_update;
+    }
+
+    // check for auto_update_interval change
+    if (IsKeyPressed(KEY_UP)) {
+      if (auto_update_interval < auto_update_max_interval) {
+	auto_update_interval += auto_update_interval_delta;
+      }
+    }
+
+    if (IsKeyPressed(KEY_DOWN)) {
+      if (auto_update_interval > auto_update_min_interval) {
+	auto_update_interval -= auto_update_interval_delta;
+      }
+    }
+
+    // check if we should calculate next gen
+    if (!auto_update && IsKeyPressed(KEY_RIGHT)) {
       Board *old_board = board;
       Board *new_board = board_copy(old_board);
       board_next_generation(old_board, new_board);
@@ -116,11 +146,28 @@ int main(int argc, char **argv) {
       generation++;
       snprintf(title, 255, "Game of Life - generation %u", generation);
       SetWindowTitle(title);
+    } else if (auto_update) {
+      struct timeval curr_time;
+      gettimeofday(&curr_time, NULL);
+      if (curr_time.tv_usec - auto_update_last.tv_usec >= auto_update_interval) {
+	auto_update_last = curr_time;
+	Board *old_board = board;
+	Board *new_board = board_copy(old_board);
+	board_next_generation(old_board, new_board);
+	board_destroy(old_board);
+	board = new_board;
+	generation++;
+	snprintf(title, 255, "Game of Life - generation %u [AUTO]", generation);
+	SetWindowTitle(title);
+      }
     }
 
     // check for board clear
     if (IsKeyPressed(KEY_C)) {
       memset(board->ptr, DEAD, board->width * board->height);
+      generation = 0;
+      snprintf(title, 255, "Game of Life - generation %u [CLEARED]", generation);
+      SetWindowTitle(title);
     }
 
     // check for savestate load
