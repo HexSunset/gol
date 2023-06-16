@@ -87,10 +87,10 @@ int main(int argc, char **argv) {
   Board *saved_board = NULL;
 
   // everything in microseconds
-  const uint64_t auto_update_max_interval = 2e6;
-  const uint64_t auto_update_min_interval = 0.25e6;
-  const uint64_t auto_update_interval_delta = 0.25e6;
-  uint64_t auto_update_interval = 0.5e6;
+  const int64_t auto_update_max_interval = 2e6;
+  const int64_t auto_update_min_interval = 0.25e6;
+  const int64_t auto_update_interval_delta = 0.25e6;
+  int64_t auto_update_interval = 0.5e6;
   bool auto_update = false;
   struct timeval auto_update_last;
   gettimeofday(&auto_update_last, NULL);

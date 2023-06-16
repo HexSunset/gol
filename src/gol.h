@@ -47,7 +47,7 @@ uint64_t board_get_linear_coordinate(Board *b, uint64_t x, uint64_t y) {
 }
 
 // returns 0 on success
-uint8_t board_set_square(Board *board, uint64_t x, uint64_t y, State s) {
+uint8_t board_set_square(Board *board, int64_t x, int64_t y, State s) {
   if (x >= board->width || x < 0 || y >= board->height || y < 0) {
     // out of bounds.
     return -1;
