@@ -7,6 +7,8 @@ Simple Conway's game of life simulation in C.
 ## Build
 Run the build script.
 
+`% ./make.sh`
+
 ## Run
 Run the executable.
 

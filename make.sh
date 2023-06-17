@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LIBS="-lraylib -lm"
-OPTS="-Wall"
+OPTS="-Wall -g"
 SRCS="./src/gol.c"
 
 set -xe
