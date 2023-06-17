@@ -11,7 +11,6 @@
 
 #include "gol.h"
 
-
 void print_usage() {
   fputs("USAGE: gol [SUBCOMMAND] ...\n", stderr);
   fputs("SUBCOMMANDS:\n", stderr);
@@ -27,7 +26,7 @@ int main(int argc, char **argv) {
 
   uint64_t width, height;
 
-  Board *board;
+  GolBoard *board;
 
   if (strcmp(argv[1], "dim") == 0) {
     if (argc != 4) {
@@ -52,7 +51,7 @@ int main(int argc, char **argv) {
       fputs(stbi_failure_reason(), stderr);
       return 1;
     }
-    
+
     width = x;
     height = y;
 
@@ -84,7 +83,7 @@ int main(int argc, char **argv) {
   snprintf(title, 255, "Game of Life - generation %lu", board->gen);
   InitWindow(window_width, window_height, title);
 
-  Board *saved_board = NULL;
+  GolBoard *saved_board = NULL;
 
   // everything in microseconds
   const int64_t auto_update_max_interval = 2e6;
@@ -134,10 +133,15 @@ int main(int argc, char **argv) {
       }
     }
 
+    // Check for undo
+    if (IsKeyPressed(KEY_LEFT)) {
+      // TODO: once we have a working history thing make this happen.
+    }
+
     // check if we should calculate next gen
     if (!auto_update && IsKeyPressed(KEY_RIGHT)) {
-      Board *old_board = board;
-      Board *new_board = board_copy(old_board);
+      GolBoard *old_board = board;
+      GolBoard *new_board = board_copy(old_board);
       board_next_generation(old_board, new_board);
       board_destroy(old_board);
       board = new_board;
@@ -149,8 +153,8 @@ int main(int argc, char **argv) {
       gettimeofday(&curr_time, NULL);
       if (curr_time.tv_usec - auto_update_last.tv_usec >= auto_update_interval) {
 	auto_update_last = curr_time;
-	Board *old_board = board;
-	Board *new_board = board_copy(old_board);
+	GolBoard *old_board = board;
+	GolBoard *new_board = board_copy(old_board);
 	board_next_generation(old_board, new_board);
 	board_destroy(old_board);
 	board = new_board;
@@ -162,8 +166,8 @@ int main(int argc, char **argv) {
 
     // check for board clear
     if (IsKeyPressed(KEY_C)) {
-      memset(board->ptr, DEAD, board->width * board->height);
-      board->gen = 0;
+      board_destroy(board);
+      board = board_create(width, height, 0);
       snprintf(title, 255, "Game of Life - generation %lu [CLEARED]", board->gen);
       SetWindowTitle(title);
     }
@@ -185,6 +189,7 @@ int main(int argc, char **argv) {
 	board_destroy(saved_board);
       }
       saved_board = board_copy(board);
+
       snprintf(title, 255, "Game of Life - generation %lu [SAVED]", board->gen);
       SetWindowTitle(title);
     }
@@ -206,7 +211,7 @@ int main(int argc, char **argv) {
 	} else {
 	  // Square is dead.
 	  if (mouse_x == x && mouse_y == y) {
-	    // Mouse hovering  
+	    // Mouse hovering
 	    DrawRectangle(x * square_width, y * square_height, square_width, square_height, DARKGRAY);
 	  }
 	}

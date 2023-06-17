@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Board Board;
-struct Board {
+typedef struct GolBoard GolBoard;
+struct GolBoard {
   uint64_t width;
   uint64_t height;
   uint64_t gen;
@@ -18,11 +18,11 @@ typedef enum State {
   DEAD = 1,
 } State;
 
-Board *board_create(uint64_t width, uint64_t height, uint64_t gen) {
+GolBoard *board_create(uint64_t width, uint64_t height, uint64_t gen) {
   uint8_t *ptr = malloc(width * height * sizeof(uint8_t));
   memset(ptr, DEAD, width * height);
 
-  Board *b = malloc(sizeof(Board));
+  GolBoard *b = malloc(sizeof(GolBoard));
   b->width = width;
   b->height = height;
   b->ptr = ptr;
@@ -31,23 +31,23 @@ Board *board_create(uint64_t width, uint64_t height, uint64_t gen) {
   return b;
 }
 
-Board *board_copy(Board *b) {
-  Board *new_board = board_create(b->width, b->height, b->gen);
+GolBoard *board_copy(GolBoard *b) {
+  GolBoard *new_board = board_create(b->width, b->height, b->gen);
   memcpy(new_board->ptr, b->ptr, b->width * b->height);
   return new_board;
 }
 
-void board_destroy(Board *board) {
+void board_destroy(GolBoard *board) {
   free(board->ptr);
   free(board);
 }
 
-uint64_t board_get_linear_coordinate(Board *b, uint64_t x, uint64_t y) {
+uint64_t board_get_linear_coordinate(GolBoard *b, uint64_t x, uint64_t y) {
   return y * b->width + x;
 }
 
 // returns 0 on success
-uint8_t board_set_square(Board *board, int64_t x, int64_t y, State s) {
+uint8_t board_set_square(GolBoard *board, int64_t x, int64_t y, State s) {
   if (x >= board->width || x < 0 || y >= board->height || y < 0) {
     // out of bounds.
     return -1;
@@ -59,12 +59,12 @@ uint8_t board_set_square(Board *board, int64_t x, int64_t y, State s) {
   return 0;
 }
 
-State board_get_square(Board *board, uint64_t x, uint64_t y) {
+State board_get_square(GolBoard *board, uint64_t x, uint64_t y) {
   uint64_t coord = board_get_linear_coordinate(board, x, y);
   return board->ptr[coord];
 }
 
-void board_next_generation(Board *b, Board *new_board) {
+void board_next_generation(GolBoard *b, GolBoard *new_board) {
   // iterate over squares.
   for (uint64_t y = 0; y < b->height; y++) {
     for (uint64_t x = 0; x < b->width; x++) {
